@@ -12,7 +12,6 @@ import {
   workflowAgentDemoBranchVerbose,
   workflowAgentDemoForeachAgent,
 } from './agents';
-import { createKitchenSinkObservability } from './observability-config';
 import { simpleMcpServer } from './mcps';
 import { loggingProcessor, contentFilterProcessor } from './processors';
 import { responseQualityScorer, responseTimeScorer } from './scorers';
@@ -43,9 +42,9 @@ export const mastra = new Mastra({
   },
   logger: new PinoLogger({
     name: 'Mastra',
-    level: process.env.KITCHEN_SINK_TRACE === '1' ? 'info' : 'error',
+    /** `mastra dev` bundles to `.mastra/output` with externals — avoid extra deps there; use trace env for verbose logs. */
+    level: process.env.KITCHEN_SINK_TRACE === '1' ? 'debug' : 'error',
   }),
-  observability: createKitchenSinkObservability(),
   storage,
   editor: new MastraEditor(),
   mcpServers: {
