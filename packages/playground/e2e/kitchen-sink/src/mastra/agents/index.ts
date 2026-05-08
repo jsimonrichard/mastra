@@ -278,37 +278,25 @@ export const weatherAgent = new Agent({
 });
 
 /**
- * Second stage of `workflow-agent-demo`: summarizes the first agent's output.
- * Distinct agent id so Studio lists a separate workflow-scoped transcript.
+ * `workflow-agent-demo` branch arm — short prompts (< 120 chars after refinement).
+ * Distinct id so Studio lists a workflow-scoped transcript per run.
  */
-export const workflowAgentDemoSummaryAgent = new Agent({
-  id: 'workflow-agent-demo-summary',
-  name: 'Workflow Demo — Summary',
-  instructions: `You compress the prior assistant message into two short sentences. Do not invent locations or forecasts beyond what you were given.`,
+export const workflowAgentDemoBranchBrief = new Agent({
+  id: 'workflow-agent-demo-brief',
+  name: 'Workflow Demo — Brief',
+  instructions: `You give a concise weather-style answer (2–3 sentences). Use tools when the user asks for a specific location's conditions.`,
   model: kitchenSinkWeatherAgentModel,
   tools: { weatherInfo, simpleMcpTool },
   memory,
 });
 
 /**
- * Parallel branch A for `workflow-agent-demo` — same tools/model as weather agent for realistic tool-call traces.
+ * `workflow-agent-demo` branch arm — longer prompts or default fallback.
  */
-export const workflowAgentDemoParallelAgentA = new Agent({
-  id: 'workflow-agent-demo-parallel-a',
-  name: 'Workflow Demo — Parallel A',
-  instructions: `You receive a prompt about weather-style content. Reply in one concise paragraph. Use tools only when the user prompt clearly asks for live weather data.`,
-  model: kitchenSinkWeatherAgentModel,
-  tools: { weatherInfo, simpleMcpTool },
-  memory,
-});
-
-/**
- * Parallel branch B — distinct id so parallel execution yields two transcript rows in Studio.
- */
-export const workflowAgentDemoParallelAgentB = new Agent({
-  id: 'workflow-agent-demo-parallel-b',
-  name: 'Workflow Demo — Parallel B',
-  instructions: `You receive the same context as parallel A. Respond with one line starting with VERDICT: followed by a brief assessment.`,
+export const workflowAgentDemoBranchVerbose = new Agent({
+  id: 'workflow-agent-demo-verbose',
+  name: 'Workflow Demo — Verbose',
+  instructions: `You give a fuller weather-style answer with brief context. Use tools when the user asks for a specific location's conditions.`,
   model: kitchenSinkWeatherAgentModel,
   tools: { weatherInfo, simpleMcpTool },
   memory,

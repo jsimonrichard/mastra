@@ -1,8 +1,8 @@
 import type { Fixtures } from '../../types';
 import { fixtures } from '../../fixtures';
 
-/** Cheap default when `OPENAI_API_KEY` is set (kitchen-sink optional live LLM). */
-export const KITCHEN_SINK_LIVE_MODEL = 'openai/gpt-4o-mini' as const;
+/** Budget-tier default when `OPENAI_API_KEY` is set (kitchen-sink optional live LLM). Not `gpt-4o`. */
+export const KITCHEN_SINK_LIVE_MODEL = 'openai/gpt-5-nano' as const;
 
 /**
  * Use a real OpenAI-backed model only when a key is present **and** no deterministic

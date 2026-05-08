@@ -1,18 +1,12 @@
 import { createWorkflow, createStep } from '@mastra/core/workflows';
 import { z } from 'zod';
 
-import {
-  weatherAgent,
-  workflowAgentDemoParallelAgentA,
-  workflowAgentDemoParallelAgentB,
-  workflowAgentDemoSummaryAgent,
-} from '../agents';
+import { workflowAgentDemoBranchBrief, workflowAgentDemoBranchVerbose } from '../agents';
 
 /**
- * Kitchen-sink workflow that stresses Studio's workflow-scoped agent transcripts:
- * - Plain steps + `dountil` refinement loop (iterations)
- * - Sequential `createStep(agent)` stages (distinct agent ids → distinct threads)
- * - Parallel agent branches (two transcripts for one run)
+ * Kitchen-sink workflow for workflow-scoped agent transcripts:
+ * - `dountil` refinement loop (iterate)
+ * - `.branch` between two `createStep(agent)` arms (branch)
  *
  * Run with input `{ "prompt": "What is the weather in Paris?" }`.
  */
@@ -75,30 +69,13 @@ const stripIterationStep = createStep({
   }),
 });
 
-const bridgeToSummaryStep = createStep({
-  id: 'workflow-agent-demo-bridge-summary',
-  inputSchema: z.object({
-    text: z.string(),
-  }),
-  outputSchema: z.object({
-    prompt: z.string(),
-  }),
-  execute: async ({ inputData }) => ({
-    prompt: `Summarize the following assistant answer in short form:\n\n${inputData.text}`,
-  }),
-});
-
-const weatherResearchStep = createStep(weatherAgent);
-const summaryAgentStep = createStep(workflowAgentDemoSummaryAgent);
-const parallelAgentStepA = createStep(workflowAgentDemoParallelAgentA);
-const parallelAgentStepB = createStep(workflowAgentDemoParallelAgentB);
+const branchBriefStep = createStep(workflowAgentDemoBranchBrief);
+const branchVerboseStep = createStep(workflowAgentDemoBranchVerbose);
 
 export const workflowAgentDemoWorkflow = createWorkflow({
   id: 'workflow-agent-demo',
   inputSchema: z.object({
-    prompt: z
-      .string()
-      .describe('Primary question — refined in a loop, then routed through sequential and parallel agent stages'),
+    prompt: z.string().describe('Question refined in a loop, then routed to a brief or verbose agent branch'),
   }),
   outputSchema: z.object({
     text: z.string(),
@@ -106,20 +83,19 @@ export const workflowAgentDemoWorkflow = createWorkflow({
 })
   .then(normalizePromptStep)
   .then(initIterationStep)
-  .dountil(refinePromptLoopStep, async ({ inputData }) => inputData.iteration >= 3)
+  .dountil(refinePromptLoopStep, async ({ inputData }) => inputData.iteration >= 2)
   .then(stripIterationStep)
-  .then(weatherResearchStep)
-  .then(bridgeToSummaryStep)
-  .then(summaryAgentStep)
-  .map(async ({ inputData }) => ({
-    prompt: `Parallel review of this summary:\n${inputData.text}`,
-  }))
-  .parallel([parallelAgentStepA, parallelAgentStepB])
+  .branch([
+    [async ({ inputData }) => inputData.prompt.length < 120, branchBriefStep],
+    [async () => true, branchVerboseStep],
+  ])
   .map(async ({ inputData }) => {
-    const a = inputData['workflow-agent-demo-parallel-a'] as { text: string };
-    const b = inputData['workflow-agent-demo-parallel-b'] as { text: string };
-    return {
-      text: `${a.text}\n---\n${b.text}`,
-    };
+    const brief = inputData['workflow-agent-demo-brief'] as { text: string } | undefined;
+    const verbose = inputData['workflow-agent-demo-verbose'] as { text: string } | undefined;
+    const out = brief ?? verbose;
+    if (!out) {
+      throw new Error('branch produced no agent output');
+    }
+    return { text: out.text };
   })
   .commit();

@@ -8,9 +8,8 @@ import {
   weatherAgent,
   omAgent,
   omAdaptiveAgent,
-  workflowAgentDemoParallelAgentA,
-  workflowAgentDemoParallelAgentB,
-  workflowAgentDemoSummaryAgent,
+  workflowAgentDemoBranchBrief,
+  workflowAgentDemoBranchVerbose,
 } from './agents';
 import { simpleMcpServer } from './mcps';
 import { loggingProcessor, contentFilterProcessor } from './processors';
@@ -31,9 +30,8 @@ export const mastra = new Mastra({
   },
   agents: {
     weatherAgent,
-    workflowAgentDemoSummaryAgent,
-    workflowAgentDemoParallelAgentA,
-    workflowAgentDemoParallelAgentB,
+    workflowAgentDemoBranchBrief,
+    workflowAgentDemoBranchVerbose,
     omAgent,
     omAdaptiveAgent,
   },
