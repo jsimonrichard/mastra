@@ -13,7 +13,7 @@ test.afterEach(async () => {
   await resetStorage();
 });
 
-test('workflow run lists agent conversation for iterate-and-branch demo', async ({ page }) => {
+test('workflow run lists agent conversation for foreach-and-branch demo', async ({ page }) => {
   test.setTimeout(120_000);
 
   await page.goto('/workflows/workflow-agent-demo/graph');
@@ -21,7 +21,7 @@ test('workflow run lists agent conversation for iterate-and-branch demo', async 
   await expect(page.locator('h2')).toContainText('workflow-agent-demo');
 
   const prompt = page.getByRole('textbox', {
-    name: /question refined in a loop/i,
+    name: /multiple embedded agent passes|foreach/i,
   });
   await expect(prompt).toBeVisible();
   await prompt.fill('What is the weather in Paris?');
@@ -38,10 +38,10 @@ test('workflow run lists agent conversation for iterate-and-branch demo', async 
 
   /** Thread ids contain `mastra:wflow:` — encoded links still include the substring `wflow` */
   const demoLinks = page.locator(
-    'a[href*="/agents/workflow-agent-demo-brief/chat/"][href*="wflow"], a[href*="/agents/workflow-agent-demo-verbose/chat/"][href*="wflow"]',
+    'a[href*="/agents/workflow-agent-demo-foreach/chat/"][href*="wflow"], a[href*="/agents/workflow-agent-demo-brief/chat/"][href*="wflow"], a[href*="/agents/workflow-agent-demo-verbose/chat/"][href*="wflow"]',
   );
   await expect(demoLinks.first()).toBeVisible({ timeout: 90_000 });
 
   await demoLinks.first().click();
-  await expect(page).toHaveURL(/\/agents\/workflow-agent-demo-(brief|verbose)\/chat\/mastra/);
+  await expect(page).toHaveURL(/\/agents\/workflow-agent-demo-(foreach|brief|verbose)\/chat\/mastra/);
 });

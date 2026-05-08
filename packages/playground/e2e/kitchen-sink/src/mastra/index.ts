@@ -10,7 +10,9 @@ import {
   omAdaptiveAgent,
   workflowAgentDemoBranchBrief,
   workflowAgentDemoBranchVerbose,
+  workflowAgentDemoForeachAgent,
 } from './agents';
+import { createKitchenSinkObservability } from './observability-config';
 import { simpleMcpServer } from './mcps';
 import { loggingProcessor, contentFilterProcessor } from './processors';
 import { responseQualityScorer, responseTimeScorer } from './scorers';
@@ -23,13 +25,17 @@ export const mastra = new Mastra({
   workflows: {
     complexWorkflow,
     lessComplexWorkflow,
-    /** Registry key matches `createWorkflow({ id })` so Studio routes and runtime metadata agree */
+    /**
+     * Demo for workflow-scoped agent transcripts (`createStep(agent)` + memory).
+     * Registry key matches `createWorkflow({ id })`. Not `lessComplexWorkflow` on `weatherAgent`.
+     */
     'workflow-agent-demo': workflowAgentDemoWorkflow,
     scheduledWorkflow,
     multiScheduledWorkflow,
   },
   agents: {
     weatherAgent,
+    workflowAgentDemoForeachAgent,
     workflowAgentDemoBranchBrief,
     workflowAgentDemoBranchVerbose,
     omAgent,
@@ -37,8 +43,9 @@ export const mastra = new Mastra({
   },
   logger: new PinoLogger({
     name: 'Mastra',
-    level: 'error',
+    level: process.env.KITCHEN_SINK_TRACE === '1' ? 'info' : 'error',
   }),
+  observability: createKitchenSinkObservability(),
   storage,
   editor: new MastraEditor(),
   mcpServers: {

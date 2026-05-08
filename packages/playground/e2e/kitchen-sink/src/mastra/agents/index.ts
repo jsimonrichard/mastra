@@ -273,7 +273,22 @@ export const weatherAgent = new Agent({
   model: kitchenSinkWeatherAgentModel,
   tools: { weatherInfo, simpleMcpTool },
   agents: { subAgent },
-  workflows: { lessComplexWorkflow },
+  workflows: {
+    /** Exposed in Studio as an agent tool / workflow stream tests — unrelated to `workflow-agent-demo`. */
+    lessComplexWorkflow,
+  },
+  memory,
+});
+
+/**
+ * Embedded in `workflow-agent-demo` **foreach** — runs once per iteration so each pass creates real agent / memory traffic (same workflow-scoped thread id across passes).
+ */
+export const workflowAgentDemoForeachAgent = new Agent({
+  id: 'workflow-agent-demo-foreach',
+  name: 'Workflow Demo — Foreach pass',
+  instructions: `You answer one short weather-related step for this prompt only (one or two sentences). Use tools if the user asks for a specific place.`,
+  model: kitchenSinkWeatherAgentModel,
+  tools: { weatherInfo, simpleMcpTool },
   memory,
 });
 

@@ -9,6 +9,7 @@
     "start": "mastra start"
   },
   "dependencies": {
+    "@mastra/observability": "latest",
     "@mastra/core": "latest",
     "@mastra/editor": "latest",
     "@mastra/libsql": "latest",
@@ -26,6 +27,7 @@
   },
   "pnpm": {
     "overrides": {
+      "@mastra/observability": "link:../../../../observability/mastra",
       "mastra": "link:../../../../packages/cli",
       "@mastra/core": "link:../../../../packages/core",
       "@mastra/loggers": "link:../../../../packages/loggers",

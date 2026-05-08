@@ -5,6 +5,7 @@ settings:
   excludeLinksFromLockfile: false
 
 overrides:
+  '@mastra/observability': link:../../../../observability/mastra
   mastra: link:../../../../packages/cli
   '@mastra/core': link:../../../../packages/core
   '@mastra/loggers': link:../../../../packages/loggers
@@ -34,6 +35,9 @@ importers:
       '@mastra/memory':
         specifier: link:../../../memory
         version: link:../../../memory
+      '@mastra/observability':
+        specifier: link:../../../../observability/mastra
+        version: link:../../../../observability/mastra
       ai:
         specifier: ^5.0.179
         version: 5.0.180(zod@4.3.6)

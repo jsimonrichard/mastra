@@ -1,12 +1,14 @@
 import { createWorkflow, createStep } from '@mastra/core/workflows';
 import { z } from 'zod';
 
-import { workflowAgentDemoBranchBrief, workflowAgentDemoBranchVerbose } from '../agents';
+import { workflowAgentDemoBranchBrief, workflowAgentDemoBranchVerbose, workflowAgentDemoForeachAgent } from '../agents';
 
 /**
  * Kitchen-sink workflow for workflow-scoped agent transcripts:
- * - `dountil` refinement loop (iterate)
- * - `.branch` between two `createStep(agent)` arms (branch)
+ * - **foreach** over fixed rounds — each iteration is `createStep(agent)` (not plain steps).
+ * - **branch** — brief vs verbose follow-up agent from combined foreach output.
+ *
+ * Distinct from `weatherAgent`'s attached `lessComplexWorkflow`: that workflow powers the agent chat / older E2E tests only.
  *
  * Run with input `{ "prompt": "What is the weather in Paris?" }`.
  */
@@ -24,50 +26,24 @@ const normalizePromptStep = createStep({
   }),
 });
 
-const initIterationStep = createStep({
-  id: 'workflow-agent-demo-init-iter',
+/** Emits one prompt per foreach iteration — each round invokes the foreach demo agent. */
+const expandForeachRoundsStep = createStep({
+  id: 'workflow-agent-demo-expand-foreach',
   inputSchema: z.object({
     prompt: z.string(),
   }),
-  outputSchema: z.object({
-    prompt: z.string(),
-    iteration: z.number(),
-  }),
-  execute: async ({ inputData }) => ({
-    prompt: inputData.prompt,
-    iteration: 0,
-  }),
+  outputSchema: z.array(
+    z.object({
+      prompt: z.string(),
+    }),
+  ),
+  execute: async ({ inputData }) => [
+    { prompt: `${inputData.prompt} — pass 1: say which location you will use.` },
+    { prompt: `${inputData.prompt} — pass 2: add one concrete condition (wind, rain, or temp).` },
+  ],
 });
 
-const refinePromptLoopStep = createStep({
-  id: 'workflow-agent-demo-refine-loop',
-  inputSchema: z.object({
-    prompt: z.string(),
-    iteration: z.number(),
-  }),
-  outputSchema: z.object({
-    prompt: z.string(),
-    iteration: z.number(),
-  }),
-  execute: async ({ inputData }) => ({
-    prompt: `${inputData.prompt} (refinement ${inputData.iteration + 1})`,
-    iteration: inputData.iteration + 1,
-  }),
-});
-
-const stripIterationStep = createStep({
-  id: 'workflow-agent-demo-strip-iter',
-  inputSchema: z.object({
-    prompt: z.string(),
-    iteration: z.number(),
-  }),
-  outputSchema: z.object({
-    prompt: z.string(),
-  }),
-  execute: async ({ inputData }) => ({
-    prompt: inputData.prompt,
-  }),
-});
+const foreachAgentStep = createStep(workflowAgentDemoForeachAgent);
 
 const branchBriefStep = createStep(workflowAgentDemoBranchBrief);
 const branchVerboseStep = createStep(workflowAgentDemoBranchVerbose);
@@ -75,18 +51,25 @@ const branchVerboseStep = createStep(workflowAgentDemoBranchVerbose);
 export const workflowAgentDemoWorkflow = createWorkflow({
   id: 'workflow-agent-demo',
   inputSchema: z.object({
-    prompt: z.string().describe('Question refined in a loop, then routed to a brief or verbose agent branch'),
+    prompt: z
+      .string()
+      .describe('Runs multiple embedded agent passes (foreach), then a brief or verbose branch from the combined text'),
   }),
   outputSchema: z.object({
     text: z.string(),
   }),
 })
   .then(normalizePromptStep)
-  .then(initIterationStep)
-  .dountil(refinePromptLoopStep, async ({ inputData }) => inputData.iteration >= 2)
-  .then(stripIterationStep)
+  .then(expandForeachRoundsStep)
+  .foreach(foreachAgentStep)
+  .map(async ({ inputData }) => {
+    const rounds = inputData as unknown as Array<{ text: string }>;
+    return {
+      prompt: rounds.map(r => r.text).join('\n\n---\n\n'),
+    };
+  })
   .branch([
-    [async ({ inputData }) => inputData.prompt.length < 120, branchBriefStep],
+    [async ({ inputData }) => inputData.prompt.length < 400, branchBriefStep],
     [async () => true, branchVerboseStep],
   ])
   .map(async ({ inputData }) => {
