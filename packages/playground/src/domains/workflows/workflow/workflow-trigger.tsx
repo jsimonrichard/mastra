@@ -94,7 +94,8 @@ export function WorkflowTrigger({
 }: WorkflowTriggerProps) {
   const requestContext = useMergedRequestContext();
 
-  const { result, setResult, payload, setPayload, setRunId: setContextRunId } = useContext(WorkflowRunContext);
+  const { result, setResult, payload, setPayload, setRunId: setContextRunId, runId: contextRunId } =
+    useContext(WorkflowRunContext);
   const { canExecute } = usePermissions();
 
   // Check if user can execute workflows
@@ -106,7 +107,8 @@ export function WorkflowTrigger({
   const streamResultToUse = result ?? streamResult;
   const suspendedSteps = useSuspendedSteps(streamResultToUse, innerRunId);
   const { zodSchemaToUse, hasStateSchema } = useWorkflowSchemas(workflow);
-  const activeRunId = innerRunId || paramsRunId;
+  /** Prefer local run id from execution; fall back to route param or provider state (keeps panel in sync after navigation). */
+  const activeRunId = innerRunId || paramsRunId || contextRunId;
 
   const handleExecuteWorkflow = async (data: any) => {
     try {
@@ -234,7 +236,11 @@ export function WorkflowTrigger({
         )}
 
         {activeRunId ? (
-          <WorkflowRunAgentConversationsPanel workflowId={workflowId} runId={activeRunId} />
+          <WorkflowRunAgentConversationsPanel
+            workflowId={workflowId}
+            runId={activeRunId}
+            runStatus={streamResultToUse?.status ?? result?.status}
+          />
         ) : null}
       </div>
 

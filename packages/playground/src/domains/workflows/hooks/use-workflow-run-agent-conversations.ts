@@ -17,15 +17,26 @@ function sortWorkflowRunThreads(threads: StorageThreadType[]): StorageThreadType
 }
 
 /**
- * Lists memory threads produced by agent workflow steps (`createStep(agent)`) during a workflow run
- * (requires agents with memory and runtime correlation from `@mastra/core` workflow agent steps).
+ * Lists memory threads produced by agent workflow steps (`createStep(agent)`) during a workflow run.
+ *
+ * **Metadata filter:** We intentionally match on `workflowRunId` + `scope` only. Thread metadata stores
+ * `workflowId` as the workflow definition's `id` from `createWorkflow({ id })`, while Studio URLs use the
+ * Mastra registry **key** (the property name in `new Mastra({ workflows: { myKey: wf } })`). Those often
+ * differ, so filtering by route `workflowId` would drop valid threads.
+ *
+ * `workflowId` stays in the React Query cache key so each workflow page keeps separate entries.
  */
-export function useWorkflowRunAgentConversations(workflowId: string | undefined, runId: string | undefined) {
+export function useWorkflowRunAgentConversations(
+  workflowId: string | undefined,
+  runId: string | undefined,
+  /** Bumps the query cache when the run finishes so we refetch persisted threads */
+  runStatus?: string | null,
+) {
   const client = useMastraClient();
   const requestContext = useMergedRequestContext();
 
   return useQuery({
-    queryKey: ['workflow-run-agent-conversations', workflowId, runId, requestContext],
+    queryKey: ['workflow-run-agent-conversations', workflowId, runId, runStatus, requestContext],
     queryFn: async () => {
       if (!workflowId || !runId) {
         return [];
@@ -33,7 +44,6 @@ export function useWorkflowRunAgentConversations(workflowId: string | undefined,
       const { threads } = await client.listMemoryThreads({
         metadata: {
           workflowRunId: runId,
-          workflowId,
           scope: WORKFLOW_AGENT_INVOCATION_SCOPE,
         },
         requestContext,
@@ -41,6 +51,7 @@ export function useWorkflowRunAgentConversations(workflowId: string | undefined,
       return sortWorkflowRunThreads(threads);
     },
     enabled: Boolean(workflowId && runId),
-    staleTime: 30_000,
+    staleTime: 0,
+    refetchOnWindowFocus: true,
   });
 }

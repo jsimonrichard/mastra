@@ -15,46 +15,71 @@ function threadMeta(thread: StorageThreadType) {
 export function WorkflowRunAgentConversationsPanel({
   workflowId,
   runId,
+  runStatus,
 }: {
   workflowId: string;
   runId?: string;
+  /** Workflow run status — when it transitions (e.g. to success), transcripts are refetched */
+  runStatus?: string | null;
 }) {
   const { Link, paths } = useLinkComponent();
-  const { data: threads, isLoading, isError } = useWorkflowRunAgentConversations(workflowId, runId);
+  const { data: threads, isLoading, isError } = useWorkflowRunAgentConversations(workflowId, runId, runStatus);
 
   if (!runId) {
     return null;
   }
 
-  if (isLoading) {
-    return (
-      <div className="space-y-2 pt-2 border-t border-border1 mt-4">
+  const header = (
+    <div className="flex items-start gap-2">
+      <MessageSquareText className="size-4 text-neutral5 shrink-0 mt-0.5" aria-hidden />
+      <div>
         <Txt variant="ui-md" className="font-medium">
           Agent conversations
         </Txt>
+        <Txt variant="ui-sm" className="text-neutral5">
+          Transcripts from <code className="text-neutral4">createStep(agent)</code> steps with memory. Links open the
+          same thread view as the agent chat page.
+        </Txt>
+      </div>
+    </div>
+  );
+
+  if (isLoading) {
+    return (
+      <div className="space-y-2 pt-4 mt-4 border-t border-border1">
+        {header}
         <Skeleton className="h-16 w-full" />
       </div>
     );
   }
 
-  if (isError || !threads?.length) {
-    return null;
+  if (isError) {
+    return (
+      <div className="space-y-2 pt-4 mt-4 border-t border-border1">
+        {header}
+        <Txt variant="ui-sm" className="text-red-400">
+          Could not load memory threads for this run.
+        </Txt>
+      </div>
+    );
+  }
+
+  if (!threads?.length) {
+    return (
+      <div className="space-y-2 pt-4 mt-4 border-t border-border1">
+        {header}
+        <Txt variant="ui-sm" className="text-neutral5">
+          No workflow-scoped agent transcripts found for this run yet. They appear after steps that use{' '}
+          <code className="text-neutral4">createStep(agent)</code> with an agent that has memory enabled (reload or
+          wait until the run finishes saving).
+        </Txt>
+      </div>
+    );
   }
 
   return (
     <div className="space-y-3 pt-4 mt-4 border-t border-border1">
-      <div className="flex items-start gap-2">
-        <MessageSquareText className="size-4 text-neutral5 shrink-0 mt-0.5" aria-hidden />
-        <div>
-          <Txt variant="ui-md" className="font-medium">
-            Agent conversations
-          </Txt>
-          <Txt variant="ui-sm" className="text-neutral5">
-            Open the same transcripts as agent chat. Shown when workflow steps use{' '}
-            <code className="text-neutral4">createStep(agent)</code> and memory is enabled.
-          </Txt>
-        </div>
-      </div>
+      {header}
 
       <ul className="space-y-2">
         {threads.map(thread => {

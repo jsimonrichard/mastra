@@ -17,7 +17,8 @@ export const mastra = new Mastra({
   workflows: {
     complexWorkflow,
     lessComplexWorkflow,
-    workflowAgentDemoWorkflow,
+    /** Registry key matches `createWorkflow({ id })` so Studio routes and runtime metadata agree */
+    'workflow-agent-demo': workflowAgentDemoWorkflow,
     scheduledWorkflow,
     multiScheduledWorkflow,
   },
