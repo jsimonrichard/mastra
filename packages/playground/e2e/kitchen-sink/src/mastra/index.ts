@@ -11,9 +11,16 @@ import { responseQualityScorer, responseTimeScorer } from './scorers';
 import { storage } from './storage';
 import { complexWorkflow, lessComplexWorkflow } from './workflows/complex-workflow';
 import { scheduledWorkflow, multiScheduledWorkflow } from './workflows/scheduled-workflow';
+import { workflowAgentDemoWorkflow } from './workflows/workflow-agent-demo-workflow';
 
 export const mastra = new Mastra({
-  workflows: { complexWorkflow, lessComplexWorkflow, scheduledWorkflow, multiScheduledWorkflow },
+  workflows: {
+    complexWorkflow,
+    lessComplexWorkflow,
+    workflowAgentDemoWorkflow,
+    scheduledWorkflow,
+    multiScheduledWorkflow,
+  },
   agents: { weatherAgent, omAgent, omAdaptiveAgent },
   logger: new PinoLogger({
     name: 'Mastra',
