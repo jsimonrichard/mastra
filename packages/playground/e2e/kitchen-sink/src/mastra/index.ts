@@ -4,7 +4,14 @@ import { computeNextFireAt } from '@mastra/core/workflows';
 import { MastraEditor } from '@mastra/editor';
 import { PinoLogger } from '@mastra/loggers';
 
-import { weatherAgent, omAgent, omAdaptiveAgent } from './agents';
+import {
+  weatherAgent,
+  omAgent,
+  omAdaptiveAgent,
+  workflowAgentDemoParallelAgentA,
+  workflowAgentDemoParallelAgentB,
+  workflowAgentDemoSummaryAgent,
+} from './agents';
 import { simpleMcpServer } from './mcps';
 import { loggingProcessor, contentFilterProcessor } from './processors';
 import { responseQualityScorer, responseTimeScorer } from './scorers';
@@ -22,7 +29,14 @@ export const mastra = new Mastra({
     scheduledWorkflow,
     multiScheduledWorkflow,
   },
-  agents: { weatherAgent, omAgent, omAdaptiveAgent },
+  agents: {
+    weatherAgent,
+    workflowAgentDemoSummaryAgent,
+    workflowAgentDemoParallelAgentA,
+    workflowAgentDemoParallelAgentB,
+    omAgent,
+    omAdaptiveAgent,
+  },
   logger: new PinoLogger({
     name: 'Mastra',
     level: 'error',
@@ -118,8 +132,8 @@ export const mastra = new Mastra({
                     ...schedule,
                     status: 'active',
                     nextFireAt,
-                    lastFireAt: null,
-                    lastRunId: null,
+                    lastFireAt: undefined,
+                    lastRunId: undefined,
                     createdAt: now,
                     updatedAt: now,
                   });
