@@ -21,6 +21,7 @@ import type { WorkflowRunStreamResult } from '../context/workflow-run-context';
 import { WorkflowRunContext } from '../context/workflow-run-context';
 import { useSuspendedSteps, useWorkflowSchemas } from './use-workflow-trigger';
 import { WorkflowCancelButton } from './workflow-cancel-button';
+import { WorkflowRunAgentConversationsPanel } from '../components/workflow-run-agent-conversations-panel';
 import { WorkflowStepsStatus } from './workflow-steps-status';
 import { WorkflowSuspendedSteps } from './workflow-suspended-steps';
 import type { ResumeStepParams } from './workflow-suspended-steps';
@@ -105,6 +106,7 @@ export function WorkflowTrigger({
   const streamResultToUse = result ?? streamResult;
   const suspendedSteps = useSuspendedSteps(streamResultToUse, innerRunId);
   const { zodSchemaToUse, hasStateSchema } = useWorkflowSchemas(workflow);
+  const activeRunId = innerRunId || paramsRunId;
 
   const handleExecuteWorkflow = async (data: any) => {
     try {
@@ -230,6 +232,10 @@ export function WorkflowTrigger({
         {hasWorkflowActivePaths && (
           <WorkflowStepsStatus steps={workflowActivePaths} workflowResult={streamResultToUse} />
         )}
+
+        {activeRunId ? (
+          <WorkflowRunAgentConversationsPanel workflowId={workflowId} runId={activeRunId} />
+        ) : null}
       </div>
 
       {result && !isObjectEmpty(result) && (
