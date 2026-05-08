@@ -1,17 +1,9 @@
-import type { StorageThreadType } from '@mastra/core/memory';
 import type { WorkflowStateStepResult } from '@mastra/core/workflows';
 import { Skeleton, Txt } from '@mastra/playground-ui';
 import { MessageSquareText } from 'lucide-react';
 import { useWorkflowRunAgentConversations } from '../hooks/use-workflow-run-agent-conversations';
+import { getWorkflowInvocationThreadMeta } from '../workflow-invocation-thread-meta';
 import { useLinkComponent } from '@/lib/framework';
-
-function threadMeta(thread: StorageThreadType) {
-  const m = thread.metadata as Record<string, unknown> | undefined;
-  return {
-    agentId: typeof m?.mastraAgentId === 'string' ? m.mastraAgentId : '',
-    stepId: typeof m?.workflowStepId === 'string' ? m.workflowStepId : '',
-  };
-}
 
 export function WorkflowRunAgentConversationsPanel({
   workflowId,
@@ -91,7 +83,7 @@ export function WorkflowRunAgentConversationsPanel({
 
       <ul className="space-y-2 min-w-0">
         {threads.map(thread => {
-          const { agentId, stepId } = threadMeta(thread);
+          const { agentId, stepId } = getWorkflowInvocationThreadMeta(thread);
           const label = thread.title?.trim() ? thread.title : stepId || thread.id;
           const to = agentId ? paths.agentThreadLink(agentId, thread.id) : undefined;
 

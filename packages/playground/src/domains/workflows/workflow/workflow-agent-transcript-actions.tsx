@@ -21,9 +21,6 @@ import { SchemaRequestContextProvider } from '@/domains/request-context/context/
 import { useLinkComponent } from '@/lib/framework';
 import type { AgentSettingsType } from '@/types';
 
-/** Serialized workflow graph steps use the same `component` string as {@link RegisteredLogger.AGENT}. */
-export const WORKFLOW_GRAPH_AGENT_COMPONENT = 'AGENT';
-
 export function WorkflowAgentTranscriptActions({ agentId, threadId }: { agentId: string; threadId: string }) {
   const { Link, paths } = useLinkComponent();
   const [previewOpen, setPreviewOpen] = useState(false);

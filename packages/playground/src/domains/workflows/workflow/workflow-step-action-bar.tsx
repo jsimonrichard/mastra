@@ -14,10 +14,13 @@ import { useContext, useMemo, useState } from 'react';
 import type { TripwireData } from '../context/use-current-run';
 import { WorkflowRunContext } from '../context/workflow-run-context';
 import { useWorkflowStepDetail } from '../context/workflow-step-detail-context';
-import { WorkflowAgentTranscriptActions, WORKFLOW_GRAPH_AGENT_COMPONENT } from './workflow-agent-transcript-actions';
+import { WorkflowAgentTranscriptActions } from './workflow-agent-transcript-actions';
 import { CodeDialogContent } from './workflow-code-dialog-content';
 import { WorkflowTimeTravelForm } from './workflow-time-travel-form';
 import { useMergedRequestContext } from '@/domains/request-context/context/schema-request-context';
+
+/** Serialized workflow graph step `component` for `createStep(agent)` — matches core agent steps. */
+const WORKFLOW_GRAPH_AGENT_COMPONENT = 'AGENT';
 
 export interface WorkflowStepActionBarProps {
   input?: any;

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { stepStartedAtFromRunSteps } from './use-workflow-run-agent-conversations';
+import { stepStartedAtFromRunSteps } from './workflow-run-conversations-sort';
 
 describe('stepStartedAtFromRunSteps', () => {
   it('returns the earliest startedAt for foreach iteration arrays', () => {
